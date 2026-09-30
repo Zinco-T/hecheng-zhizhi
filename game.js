@@ -60,7 +60,21 @@
   function draw(){ctx.clearRect(0,0,W,H);ctx.save();ctx.strokeStyle='#e7cdbb';ctx.setLineDash([5,7]);ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,104);ctx.lineTo(W,104);ctx.stroke();ctx.restore();ctx.font='700 11px "Noto Sans SC",sans-serif';ctx.fillStyle='#d8b8a3';ctx.textAlign='left';ctx.fillText('堆到这里就结束啦',12,95);if(!over){const r=RADII[current],x=Math.max(r+5,Math.min(W-r-5,aim));ctx.save();ctx.setLineDash([4,6]);ctx.strokeStyle='#d5ad9b';ctx.beginPath();ctx.moveTo(x,48+r);ctx.lineTo(x,H-8);ctx.stroke();ctx.restore();if(canDrop)drawBall({x,y:48,r,level:current},.88)}for(const b of balls)drawBall(b);for(const e of effects){ctx.save();ctx.globalAlpha=e.life*1.3;ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.beginPath();ctx.arc(e.x,e.y,e.r+(1-e.life)*60,0,Math.PI*2);ctx.stroke();ctx.restore()}if(topTimer>.15&&!over){ctx.fillStyle=`rgba(227,109,92,${Math.min(.18,topTimer*.15)})`;ctx.fillRect(0,0,W,104)}}
   function frame(t){const dt=Math.min(.025,Math.max(0,(t-lastTime)/1000));lastTime=t;if(!document.hidden)step(dt);draw();requestAnimationFrame(frame)}
   function pointerX(event){const rect=canvas.getBoundingClientRect();aim=Math.max(RADII[current]+5,Math.min(W-RADII[current]-5,event.clientX-rect.left))}
-  canvas.addEventListener('pointermove',pointerX);canvas.addEventListener('pointerdown',event=>{event.preventDefault();pointerX(event);drop()});
+  let activePointer=null;
+  canvas.addEventListener('pointerdown',event=>{
+    if(event.button!==0||activePointer!==null||over)return;
+    event.preventDefault();activePointer=event.pointerId;pointerX(event);
+    try{canvas.setPointerCapture(event.pointerId)}catch{}
+  });
+  canvas.addEventListener('pointermove',event=>{
+    if(event.pointerType==='mouse'||activePointer===event.pointerId){if(activePointer===event.pointerId)event.preventDefault();pointerX(event)}
+  });
+  canvas.addEventListener('pointerup',event=>{
+    if(activePointer!==event.pointerId)return;
+    event.preventDefault();pointerX(event);activePointer=null;drop();
+    try{canvas.releasePointerCapture(event.pointerId)}catch{}
+  });
+  canvas.addEventListener('pointercancel',event=>{if(activePointer===event.pointerId)activePointer=null});
   document.addEventListener('keydown',event=>{if(over){if(event.code==='KeyR')reset();return}if(event.code==='ArrowLeft'||event.code==='ArrowRight'){event.preventDefault();aim=Math.max(RADII[current]+5,Math.min(W-RADII[current]-5,aim+(event.code==='ArrowLeft'?-22:22)))}if(event.code==='Space'||event.code==='ArrowDown'){event.preventDefault();if(!event.repeat)drop()}if(event.code==='KeyR')reset()});
   $('restart').addEventListener('click',reset);$('again').addEventListener('click',reset);window.addEventListener('resize',resize);resize();reset();requestAnimationFrame(frame);
 })();

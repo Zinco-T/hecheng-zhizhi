@@ -28,18 +28,18 @@
       </div>
 
       <div class="playfield" id="playfield">
-        <canvas id="game" role="img" aria-label="合成游戏区域。移动鼠标或手指选择位置，点击或松手投放。"></canvas>
+        <canvas id="game" role="img" aria-label="合成游戏区域。按住拖动选择落点，松手投放；轻点也可直接投放。"></canvas>
         <div class="gameover hidden" id="gameover" role="dialog" aria-modal="true" aria-labelledby="over-title">
           <div class="over-card"><span class="over-flower">✿</span><span class="eyebrow">ONE MORE ROUND?</span><h2 id="over-title">之之堆满啦！</h2><p>再来一次，合成更大的之之吧。</p><div class="over-scores"><div><span>本局分数</span><strong id="final-score">0</strong></div><div><span>最高分</span><strong id="final-best">0</strong></div></div><button id="again" type="button">再来一局 <span>↗</span></button></div>
         </div>
       </div>
 
-      <div class="hint"><span class="hint-icon">☝</span><span>移动选择位置，轻点投放<br><small>键盘 ← → 移动，空格投放</small></span></div>
+      <div class="hint"><span class="hint-icon">☝</span><span>按住拖动瞄准，松手投放<br><small>轻点也可投放 · 键盘 ← → 移动，空格投放</small></span></div>
     </section>
 
     <section class="evolution" aria-label="合成图鉴"><div class="evolution-title"><span>✦</span> 之之进化图鉴 <span>✦</span></div><div id="evolution-list" class="evolution-list"></div></section>
     <footer>每一种之之，都是独一无二的可爱。 <span>♡</span></footer>
   </main>
-  <script src="game.js?v=3"></script>
+  <script src="game.js?v=4"></script>
 </body>
 </html>
