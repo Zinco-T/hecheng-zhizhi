@@ -20,8 +20,37 @@
   function reset(){balls=[];effects=[];score=0;current=randomLevel();next=randomLevel();aim=W/2;canDrop=true;over=false;topTimer=0;dropWait=0;lastTime=performance.now();$('gameover').classList.add('hidden');updateHud();}
   function drop(){if(over||!canDrop)return;const r=RADII[current];balls.push({id:++id,x:Math.max(r+5,Math.min(W-r-5,aim)),y:48,vx:0,vy:20,r,level:current,age:0,squish:0});current=next;next=randomLevel();aim=Math.max(RADII[current]+5,Math.min(W-RADII[current]-5,aim));canDrop=false;dropWait=.42;updateHud();}
   function merge(a,b){const level=a.level+1,x=(a.x+b.x)/2,y=(a.y+b.y)/2;balls=balls.filter(item=>item!==a&&item!==b);const r=RADII[level];balls.push({id:++id,x:Math.max(r+4,Math.min(W-r-4,x)),y:Math.max(r+4,y),vx:(a.vx+b.vx)*.2,vy:-165,r,level,age:0,squish:.8});score+=10*2**level;if(score>best){best=score;try{localStorage.setItem('zhizhi-merge-best',String(best))}catch{}}effects.push({x,y,life:.5,r:r*.6});updateHud();}
-  function step(dt){if(over)return;if(!canDrop){dropWait-=dt;if(dropWait<=0)canDrop=true}const gravity=1050;for(const b of balls){b.age+=dt;b.squish=Math.max(0,(b.squish||0)-dt*3.5);b.vy=Math.min(850,b.vy+gravity*dt);b.x+=b.vx*dt;b.y+=b.vy*dt;b.vx*=Math.pow(.994,dt*60);if(b.x<b.r+3){b.x=b.r+3;b.vx=Math.abs(b.vx)*.55;b.squish=Math.max(b.squish,Math.min(.8,Math.abs(b.vx)/300))}if(b.x>W-b.r-3){b.x=W-b.r-3;b.vx=-Math.abs(b.vx)*.55;b.squish=Math.max(b.squish,Math.min(.8,Math.abs(b.vx)/300))}if(b.y>H-b.r-4){const impact=Math.abs(b.vy);b.y=H-b.r-4;b.vy=impact>65?-impact*.42:0;if(impact>95)b.squish=Math.max(b.squish,Math.min(1,impact/470));b.vx*=.91}}
-    for(let iteration=0;iteration<4;iteration++){let didMerge=false;outer:for(let i=0;i<balls.length;i++)for(let j=i+1;j<balls.length;j++){const a=balls[i],b=balls[j],dx=b.x-a.x,dy=b.y-a.y,dist=Math.hypot(dx,dy)||.001,min=a.r+b.r;if(dist>=min)continue;if(a.level===b.level&&a.level<RADII.length-1&&a.age>.08&&b.age>.08){merge(a,b);didMerge=true;break outer}const nx=dx/dist,ny=dy/dist,overlap=min-dist,massA=a.r*a.r,massB=b.r*b.r,total=massA+massB;a.x-=nx*overlap*massB/total*.52;a.y-=ny*overlap*massB/total*.52;b.x+=nx*overlap*massA/total*.52;b.y+=ny*overlap*massA/total*.52;const rv=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;if(rv<0){if(rv< -45){const s=Math.min(.85,-rv/550);a.squish=Math.max(a.squish,s);b.squish=Math.max(b.squish,s)}const impulse=-(1.38)*rv/(1/massA+1/massB);a.vx-=impulse*nx/massA;a.vy-=impulse*ny/massA;b.vx+=impulse*nx/massB;b.vy+=impulse*ny/massB}}if(didMerge)iteration=0;}
+  function constrain(b,bounce=true){
+    const left=b.r+3,right=W-b.r-3,floor=H-b.r-4;
+    if(b.x<left){const impact=Math.max(0,-b.vx);b.x=left;if(impact>0)b.vx=bounce&&impact>80?impact*.42:0;if(bounce&&impact>80)b.squish=Math.max(b.squish,Math.min(.75,impact/500))}
+    if(b.x>right){const impact=Math.max(0,b.vx);b.x=right;if(impact>0)b.vx=bounce&&impact>80?-impact*.42:0;if(bounce&&impact>80)b.squish=Math.max(b.squish,Math.min(.75,impact/500))}
+    if(b.y>floor){const impact=Math.max(0,b.vy);b.y=floor;if(impact>0)b.vy=bounce&&impact>90?-impact*.38:0;if(bounce&&impact>90)b.squish=Math.max(b.squish,Math.min(1,impact/470));b.vx*=.9}
+  }
+  function step(dt){
+    if(over)return;
+    if(!canDrop){dropWait-=dt;if(dropWait<=0)canDrop=true}
+    for(const b of balls){b.age+=dt;b.squish=Math.max(0,(b.squish||0)-dt*3.5);b.vy=Math.min(850,b.vy+1050*dt);b.x+=b.vx*dt;b.y+=b.vy*dt;b.vx*=Math.pow(.992,dt*60);constrain(b)}
+    for(let iteration=0;iteration<5;iteration++){
+      let didMerge=false;
+      outer:for(let i=0;i<balls.length;i++)for(let j=i+1;j<balls.length;j++){
+        const a=balls[i],b=balls[j],dx=b.x-a.x,dy=b.y-a.y,dist=Math.hypot(dx,dy)||.001,min=a.r+b.r;
+        if(dist>=min)continue;
+        if(a.level===b.level&&a.level<RADII.length-1&&a.age>.08&&b.age>.08){merge(a,b);didMerge=true;break outer}
+        const nx=dx/dist,ny=dy/dist,overlap=min-dist,massA=a.r*a.r,massB=b.r*b.r,total=massA+massB;
+        a.x-=nx*overlap*massB/total*.55;a.y-=ny*overlap*massB/total*.55;
+        b.x+=nx*overlap*massA/total*.55;b.y+=ny*overlap*massA/total*.55;
+        const rv=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;
+        if(rv<0){
+          if(rv< -45){const s=Math.min(.85,-rv/550);a.squish=Math.max(a.squish,s);b.squish=Math.max(b.squish,s)}
+          const restitution=rv< -130?.38:0;
+          const impulse=-(1+restitution)*rv/(1/massA+1/massB);
+          a.vx-=impulse*nx/massA;a.vy-=impulse*ny/massA;
+          b.vx+=impulse*nx/massB;b.vy+=impulse*ny/massB;
+        }
+      }
+      for(const b of balls)constrain(b,false);
+      if(didMerge)iteration=0;
+    }
     for(const e of effects)e.life-=dt;effects=effects.filter(e=>e.life>0);
     const danger=balls.some(b=>b.age>1.4&&b.y-b.r<104&&Math.abs(b.vy)<75);topTimer=danger?topTimer+dt:Math.max(0,topTimer-dt*2);if(topTimer>1.25)gameOver();
   }
