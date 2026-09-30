@@ -6,6 +6,9 @@
   <meta name="theme-color" content="#f8e9dc">
   <meta name="description" content="把可爱的之之照片合成起来！移动落点，松手投放，两个相同的之之碰到就会升级。">
   <title>合成之之 · 之之的快乐相册</title>
+  <link rel="preload" as="image" href="assets/level-1.webp" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/level-2.webp" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/level-3.webp" fetchpriority="high">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23ec8d80'/%3E%3Ctext x='32' y='45' text-anchor='middle' font-size='40' fill='white'%3E之%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -20,7 +23,7 @@
       <div class="scorebar">
         <div class="score-card"><span>本局分数</span><strong id="score">0</strong></div>
         <div class="score-card"><span>最高分</span><strong id="best">0</strong></div>
-        <div class="next-card"><span>下一个</span><img id="next-image" src="assets/level-1.jpg" alt="下一个之之"></div>
+        <div class="next-card"><span>下一个</span><img id="next-image" src="assets/level-1.webp" alt="下一个之之"></div>
         <button class="restart" id="restart" type="button" aria-label="重新开始">↻ <span>重开</span></button>
       </div>
 
@@ -37,6 +40,6 @@
     <section class="evolution" aria-label="合成图鉴"><div class="evolution-title"><span>✦</span> 之之进化图鉴 <span>✦</span></div><div id="evolution-list" class="evolution-list"></div></section>
     <footer>每一种之之，都是独一无二的可爱。 <span>♡</span></footer>
   </main>
-  <script src="game.js?v=2"></script>
+  <script src="game.js?v=3"></script>
 </body>
 </html>

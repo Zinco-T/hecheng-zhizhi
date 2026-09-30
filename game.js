@@ -7,16 +7,17 @@
   const COLORS = ['#f6c6a5','#f2b39d','#e8a796','#de9ca0','#d9a7b7','#bfa4c2','#a7b4c5','#9dc4bd','#95ba9e','#e5b986'];
   const RADII = [21,26,32,39,47,56,67,80,94,108];
   const labels = ['初见之之','元气之之','开心之之','甜甜之之','闪亮之之','出游之之','浪漫之之','酷酷之之','超级之之','终极之之'];
-  const focus = [[.34,.28,.58],[.5,.48,.92],[.5,.59,.68],[.52,.45,.68],[.59,.45,.65],[.56,.34,.68],[.5,.23,.62],[.45,.35,.66],[.57,.39,.66],[.48,.3,.55]];
-  const images = Array.from({length:10},(_,i)=>{const img=new Image();img.src=i===9?'assets/final.png':`assets/level-${i+1}.jpg`;return img;});
+  const focus = Array.from({length:10},()=>[.5,.5,1]);
+  const asset = level => `assets/level-${level+1}.webp`;
+  const images = Array.from({length:10},(_,i)=>{const img=new Image();img.decoding='async';if(i<3)img.fetchPriority='high';img.src=asset(i);return img;});
   const evolution = $('evolution-list');
-  labels.forEach((label,i)=>{const item=document.createElement('div');item.className='evolution-item';item.innerHTML=`<img src="${i===9?'assets/final.png':`assets/level-${i+1}.jpg`}" alt="${label}" style="object-position:${focus[i][0]*100}% ${focus[i][1]*100}%"><span>${i+1}级</span>`;evolution.append(item);});
+  labels.forEach((label,i)=>{const item=document.createElement('div');item.className='evolution-item';item.innerHTML=`<img src="${asset(i)}" alt="${label}" loading="lazy" decoding="async"><span>${i+1}级</span>`;evolution.append(item);});
   let W=400,H=570,dpr=1,balls=[],effects=[],score=0,best=0,current=0,next=0,aim=200,canDrop=true,over=false,lastTime=0,topTimer=0,dropWait=0,id=0;
   try{best=Number(localStorage.getItem('zhizhi-merge-best'))||0}catch{}
   $('best').textContent=best;
   const randomLevel=()=>{const n=Math.random();return n<.55?0:n<.85?1:2};
   function resize(){const rect=canvas.getBoundingClientRect();W=rect.width;H=rect.height;dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);aim=Math.max(RADII[current]+7,Math.min(W-RADII[current]-7,aim));}
-  function updateHud(){ $('score').textContent=score;$('best').textContent=best;$('next-image').src=next===9?'assets/final.png':`assets/level-${next+1}.jpg`; $('next-image').alt=`下一个：${labels[next]}`; }
+  function updateHud(){ $('score').textContent=score;$('best').textContent=best;$('next-image').src=asset(next); $('next-image').alt=`下一个：${labels[next]}`; }
   function reset(){balls=[];effects=[];score=0;current=randomLevel();next=randomLevel();aim=W/2;canDrop=true;over=false;topTimer=0;dropWait=0;lastTime=performance.now();$('gameover').classList.add('hidden');updateHud();}
   function drop(){if(over||!canDrop)return;const r=RADII[current];balls.push({id:++id,x:Math.max(r+5,Math.min(W-r-5,aim)),y:48,vx:0,vy:20,r,level:current,age:0,squish:0});current=next;next=randomLevel();aim=Math.max(RADII[current]+5,Math.min(W-RADII[current]-5,aim));canDrop=false;dropWait=.42;updateHud();}
   function merge(a,b){const level=a.level+1,x=(a.x+b.x)/2,y=(a.y+b.y)/2;balls=balls.filter(item=>item!==a&&item!==b);const r=RADII[level];balls.push({id:++id,x:Math.max(r+4,Math.min(W-r-4,x)),y:Math.max(r+4,y),vx:(a.vx+b.vx)*.2,vy:-165,r,level,age:0,squish:.8});score+=10*2**level;if(score>best){best=score;try{localStorage.setItem('zhizhi-merge-best',String(best))}catch{}}effects.push({x,y,life:.5,r:r*.6});updateHud();}
